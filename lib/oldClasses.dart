@@ -474,3 +474,110 @@
 //     appointments = source;
 //   }
 // }
+
+
+
+
+// import 'objectbox.g.dart';
+// import 'package:custom_calendar_viewer/custom_calendar_viewer.dart';
+// import 'package:objectbox/objectbox.dart';
+
+// @Entity()
+// class castratedRangeDate {
+//   @Id(assignable: true)
+//   int id = 0;
+
+//   DateTime start;
+//   DateTime end;
+
+//   castratedRangeDate({
+//     required this.start,
+//     required this.end,
+//   });
+// }
+
+// class ObjectBox {
+//   late final Store store;
+//   late final Box<castratedRangeDate> rangeDateBox;
+
+//   ObjectBox._init(this.store) {
+//     rangeDateBox = Box<castratedRangeDate>(store);
+//   }
+
+//   static Future<ObjectBox> init() async {
+//     final store = await openStore();
+//     return ObjectBox._init(store);
+//   }
+
+//   Future<void> saveRangesListCopy(List<RangeDate> rangeDateList) async {
+//     await rangeDateBox.removeAll();
+
+//     for (var rangeDate in rangeDateList) {
+//       await rangeDateBox
+//           .put(castratedRangeDate(start: rangeDate.start, end: rangeDate.end));
+//     }
+//   }
+
+//   Future<List<RangeDate>> getAllRangeDates() async {
+//     List<RangeDate> rangeDateList = [];
+//     for (castratedRangeDate crd in rangeDateBox.getAll()) {
+//       rangeDateList.add(RangeDate(start: crd.start, end: crd.end));
+//     }
+//     return rangeDateList;
+//   }
+// }
+
+
+// import 'package:flutter/material.dart';
+// import 'package:flutter_application_3/objectbox_convert.dart';
+
+// late ObjectBox objectBox;
+
+// Future main() async {
+//   objectBox = await ObjectBox.init();
+//   runApp(const MyCalendar());
+// }
+
+// class MyCalendar extends StatelessWidget {
+//   const MyCalendar({Key? key}) : super(key: key);
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return MaterialApp(
+//       title: 'Flutter Demo',
+//       debugShowCheckedModeBanner: false,
+//       theme: ThemeData(
+//         colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xffffffff)),
+//         useMaterial3: true,
+//       ),
+//       home: const MyHomePage(title: 'Calendar'),
+//     );
+//   }
+// }
+
+// class MyHomePage extends StatefulWidget {
+//   const MyHomePage({Key? key, required this.title}) : super(key: key);
+
+//   final String title;
+
+//   @override
+//   State<MyHomePage> createState() => _MyHomePageState();
+// }
+
+// class _MyHomePageState extends State<MyHomePage> {
+//   String local = 'en';
+//   List<RangeDate> ranges = [];
+
+//   @override
+//   void initState() {
+//     super.initState();
+//     loadRanges();
+//   }
+
+//   Future<void> loadRanges() async {
+//     objectBox = await ObjectBox.init(); // Remove the type declaration
+//     List<RangeDate> r = await objectBox.getAllRangeDates();
+//     setState(() {
+//       ranges = r;
+//     });
+//   }

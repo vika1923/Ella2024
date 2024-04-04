@@ -1,13 +1,20 @@
-import 'package:custom_calendar_viewer/custom_calendar_viewer.dart';
 import 'package:flutter/material.dart';
-import 'package:objectbox/objectbox.dart';
+import 'package:flutter_application_3/boxes.dart';
+import 'package:flutter_application_3/ranges.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import 'package:custom_calendar_viewer/custom_calendar_viewer.dart';
 
-void main() {
+Future main() async {
+  await Hive.initFlutter();
+  if (!Hive.isAdapterRegistered(1)) {
+    Hive.registerAdapter(RangeAdapter());
+  }
+  boxRanges = await Hive.openBox<Range>('rangesBox');
   runApp(const MyCalendar());
 }
 
 class MyCalendar extends StatelessWidget {
-  const MyCalendar({Key? key}) : super(key: key);
+  const MyCalendar({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -24,7 +31,7 @@ class MyCalendar extends StatelessWidget {
 }
 
 class MyHomePage extends StatefulWidget {
-  const MyHomePage({Key? key, required this.title}) : super(key: key);
+  const MyHomePage({super.key, required this.title});
 
   final String title;
 
@@ -33,9 +40,26 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  int checked =
+      0; //  USED AS BOOL. CHANGES TO 1 IF THE "CHECK" BUTTON WAS PRESSED. needed not to save the predicted date.
   String local = 'en';
-
   List<RangeDate> ranges = [];
+
+  late Future<Box<Range>> _boxRangesFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _boxRangesFuture = _openBoxRanges();
+  }
+
+  Future<Box<Range>> _openBoxRanges() async {
+    await Hive.initFlutter();
+    if (!Hive.isAdapterRegistered(1)) {
+      Hive.registerAdapter(RangeAdapter());
+    }
+    return Hive.openBox<Range>('rangesBox');
+  }
 
   int averageDistanceBetweenDates(List<DateTime> dates) {
     // РАССЧИТЫВАЕТ СРЕДНИЙ ПЕРИОД ВРЕМЕНИ(ЧИСЛО ДНЕЙ) МЕЖДУ ПЕРВЫМ ДНЕМ КАЖДОГО ЦИКЛА
@@ -68,8 +92,11 @@ class _MyHomePageState extends State<MyHomePage> {
     return startDates;
   }
 
-  void _handleSaveButtonPressed(List<RangeDate> ranges) {
-    print(ranges);
+  void _handleSaveButtonPressed(Box<Range> boxRanges, List<RangeDate> ranges) {
+    boxRanges.clear();
+    for (int i = 0; i < ranges.length - checked; i++) {
+      boxRanges.add(Range(start: ranges[i].start, end: ranges[i].end));
+    }
   }
 
   void _handleCheckButtonPressed(List<RangeDate> ranges) {
@@ -78,86 +105,100 @@ class _MyHomePageState extends State<MyHomePage> {
     RangeDate nextPrediction = RangeDate(
         start: nextStartPrediction,
         end: nextStartPrediction.add(Duration(days: averageDuration(ranges))),
-        color: Color(0x272794ff));
+        color: Colors.cyan);
     setState(() {
+      checked = 1;
       ranges.add(nextPrediction);
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    return Directionality(
-      textDirection: local == 'en' ? TextDirection.ltr : TextDirection.rtl,
-      child: Scaffold(
-        body: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.only(top: 20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const Text(
-                  'Ella Calendar',
-                  style: TextStyle(fontSize: 18),
-                  textAlign: TextAlign.center,
-                ),
-                Expanded(
-                  child: SingleChildScrollView(
-                    child: Column(
-                      children: [
-                        CustomCalendarViewer(
-                          local: local,
-                          dates: dates,
-                          ranges: ranges,
-                          calendarType: CustomCalendarType.multiRanges,
-                          calendarStyle: CustomCalendarStyle.normal,
-                          animateDirection:
-                              CustomCalendarAnimatedDirection.vertical,
-                          movingArrowSize: 24,
-                          spaceBetweenMovingArrow: 20,
-                          closedDatesColor: Colors.grey.withOpacity(0.7),
-                          showBorderAfterDayHeader: true,
-                          showTooltip: false,
-                          toolTipMessage: '',
-                          calendarStartDay: CustomCalendarStartDay.monday,
-                          // onDatesUpdated: (newDates) {
-                          //   print('onDatesUpdated');
-                          //   print(newDates.length);
-                          // },
-                        ),
-                        const Padding(
-                          padding: EdgeInsets.symmetric(vertical: 15),
-                          child: Divider(),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(20),
+    return FutureBuilder<Box<Range>>(
+      future: _boxRangesFuture,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        } else if (snapshot.hasError) {
+          return Center(child: Text('Error: ${snapshot.error}'));
+        } else {
+          final boxRanges = snapshot.data as Box<Range>;
+          Iterable storedRanges = boxRanges.values;
+          for (Range range in storedRanges) {
+            ranges.add(RangeDate(start: range.start, end: range.end));
+          }
+          return Directionality(
+            textDirection:
+                local == 'en' ? TextDirection.ltr : TextDirection.rtl,
+            child: Scaffold(
+              body: SafeArea(
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 20),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      ElevatedButton(
-                        onPressed: () {
-                          _handleSaveButtonPressed(ranges);
-                        },
-                        child: const Text('Save'),
+                      const Text(
+                        'Ella Calendar',
+                        style: TextStyle(fontSize: 18),
+                        textAlign: TextAlign.center,
                       ),
-                      const SizedBox(height: 10), // Add space between buttons
-                      ElevatedButton(
-                        onPressed: () {
-                          _handleCheckButtonPressed(ranges);
-                        },
-                        child: const Text('Check'),
+                      Expanded(
+                        child: SingleChildScrollView(
+                          child: Column(
+                            children: [
+                              CustomCalendarViewer(
+                                local: local,
+                                dates: dates,
+                                ranges: ranges,
+                                calendarType: CustomCalendarType.multiRanges,
+                                calendarStyle: CustomCalendarStyle.normal,
+                                animateDirection:
+                                    CustomCalendarAnimatedDirection.vertical,
+                                movingArrowSize: 24,
+                                spaceBetweenMovingArrow: 20,
+                                closedDatesColor: Colors.grey.withOpacity(0.7),
+                                showBorderAfterDayHeader: true,
+                                showTooltip: false,
+                                toolTipMessage: '',
+                                calendarStartDay: CustomCalendarStartDay.monday,
+                              ),
+                              const Padding(
+                                padding: EdgeInsets.symmetric(vertical: 15),
+                                child: Divider(),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(20),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            ElevatedButton(
+                              onPressed: () {
+                                _handleSaveButtonPressed(boxRanges, ranges);
+                              },
+                              child: const Text('Save'),
+                            ),
+                            const SizedBox(height: 10),
+                            ElevatedButton(
+                              onPressed: () {
+                                _handleCheckButtonPressed(ranges);
+                              },
+                              child: const Text('Check'),
+                            ),
+                          ],
+                        ),
                       ),
                     ],
                   ),
                 ),
-              ],
+              ),
             ),
-          ),
-        ),
-      ),
+          );
+        }
+      },
     );
   }
 }
