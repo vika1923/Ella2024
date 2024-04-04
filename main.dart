@@ -5,10 +5,12 @@ import 'package:flutter_application_3/web.dart';
 import 'package:flutter_application_3/pdf.dart';
 
 void main() {
-  runApp(MyApp());
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -16,12 +18,14 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: MyHomePage(),
+      home: const MyHomePage(),
     );
   }
 }
 
 class MyHomePage extends StatefulWidget {
+  const MyHomePage({super.key});
+
   @override
   _MyHomePageState createState() => _MyHomePageState();
 }
@@ -29,19 +33,19 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   int _selectedIndex = 0;
   final List<Widget> _pages = [
-    Book(),
-    MyCalendar(),
-    ChatScreen(),
-    Telegram(),
-    WebPage(),
-    Test()
+    const Book(),
+    const MyCalendar(),
+    const ChatScreen(),
+    const Telegram(),
+    const WebPage(),
+    const Test()
   ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Ella'),
+        title: const Text('Ella'),
       ),
       body: _pages[_selectedIndex],
       bottomNavigationBar: BottomNavigationBar(

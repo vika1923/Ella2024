@@ -8,6 +8,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite/sqflite.dart';
 
 class ChatScreen extends StatefulWidget {
+  const ChatScreen({super.key});
+
   @override
   State<ChatScreen> createState() => _ChatScreenState();
 }
@@ -44,16 +46,16 @@ class _ChatScreenState extends State<ChatScreen> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Enter your API Key'),
+          title: const Text('Enter your API Key'),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(
+              const Text(
                 'You can obtain your API key from the Gemini website:',
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 10),
-              Text(
+              const Text(
                 'https://aistudio.google.com/app/apikey',
                 textAlign: TextAlign.center,
               ),
@@ -78,13 +80,13 @@ class _ChatScreenState extends State<ChatScreen> {
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: Text('Cancel'),
+              child: const Text('Cancel'),
             ),
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop(_apiKey);
               },
-              child: Text('Save'),
+              child: const Text('Save'),
             ),
           ],
         );
@@ -211,11 +213,11 @@ class Messages extends StatelessWidget {
   final String message;
   final String date;
   const Messages({
-    Key? key,
+    super.key,
     required this.isUser,
     required this.message,
     required this.date,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

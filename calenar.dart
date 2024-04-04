@@ -1,19 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_3/boxes.dart';
 import 'package:flutter_application_3/ranges.dart';
-import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:custom_calendar_viewer/custom_calendar_viewer.dart';
 
 Future main() async {
   await Hive.initFlutter();
-  Hive.registerAdapter(RangesAdapter());
+  if (!Hive.isAdapterRegistered(1)) {
+    Hive.registerAdapter(RangeAdapter());
+  }
   boxRanges = await Hive.openBox<Range>('rangesBox');
   runApp(const MyCalendar());
 }
 
 class MyCalendar extends StatelessWidget {
-  const MyCalendar({Key? key}) : super(key: key);
+  const MyCalendar({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -30,7 +31,7 @@ class MyCalendar extends StatelessWidget {
 }
 
 class MyHomePage extends StatefulWidget {
-  const MyHomePage({Key? key, required this.title}) : super(key: key);
+  const MyHomePage({super.key, required this.title});
 
   final String title;
 
@@ -54,7 +55,9 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Future<Box<Range>> _openBoxRanges() async {
     await Hive.initFlutter();
-    Hive.registerAdapter(RangesAdapter());
+    if (!Hive.isAdapterRegistered(1)) {
+      Hive.registerAdapter(RangeAdapter());
+    }
     return Hive.openBox<Range>('rangesBox');
   }
 
@@ -115,7 +118,7 @@ class _MyHomePageState extends State<MyHomePage> {
       future: _boxRangesFuture,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return Center(child: CircularProgressIndicator());
+          return const Center(child: CircularProgressIndicator());
         } else if (snapshot.hasError) {
           return Center(child: Text('Error: ${snapshot.error}'));
         } else {

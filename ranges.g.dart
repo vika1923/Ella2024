@@ -6,7 +6,7 @@ part of 'ranges.dart';
 // TypeAdapterGenerator
 // **************************************************************************
 
-class RangesAdapter extends TypeAdapter<Range> {
+class RangeAdapter extends TypeAdapter<Range> {
   @override
   final int typeId = 1;
 
@@ -38,7 +38,7 @@ class RangesAdapter extends TypeAdapter<Range> {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is RangesAdapter &&
+      other is RangeAdapter &&
           runtimeType == other.runtimeType &&
           typeId == other.typeId;
 }
